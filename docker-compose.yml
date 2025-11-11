@@ -1,0 +1,32 @@
+version: '3.9'
+services:
+  db:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: rogues
+      POSTGRES_PASSWORD: rogues
+      POSTGRES_DB: rogue_tier
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+  server:
+    build: ./apps/server
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://rogues:rogues@db:5432/rogue_tier
+      JWT_SECRET: devsecret
+    ports:
+      - "3001:3001"
+  client:
+    build: ./apps/client
+    depends_on:
+      - server
+    environment:
+      VITE_API_URL: http://localhost:3001
+    ports:
+      - "5173:5173"
+volumes:
+  postgres-data:

@@ -1,0 +1,19 @@
+{
+  "name": "rogue-tier",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@8.15.4",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "test": "turbo test",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "@types/node": "20.11.19",
+    "eslint": "8.57.0",
+    "prettier": "3.2.5",
+    "turbo": "1.12.3"
+  }
+}
