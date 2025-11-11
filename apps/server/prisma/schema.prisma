@@ -1,0 +1,127 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  createdAt    DateTime  @default(now())
+  sessions     Session[]
+  characters   Character[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  expiresAt DateTime
+}
+
+model Character {
+  id         String           @id @default(cuid())
+  user       User             @relation(fields: [userId], references: [id])
+  userId     String
+  name       String
+  level      Int              @default(1)
+  xp         Int              @default(0)
+  statsJson  Json
+  createdAt  DateTime         @default(now())
+  skills     SkillAllocation[]
+  inventory  InventoryItem[]
+  runs       DungeonRun[]
+  unlocks    Unlock[]
+}
+
+model SkillNode {
+  id            String           @id @default(cuid())
+  key           String           @unique
+  path          String
+  maxRank       Int
+  description   String
+  requiresJson  Json
+  synergiesJson Json
+  allocations   SkillAllocation[]
+}
+
+model SkillAllocation {
+  id          String    @id @default(cuid())
+  character   Character @relation(fields: [characterId], references: [id])
+  characterId String
+  node        SkillNode @relation(fields: [nodeId], references: [id])
+  nodeId      String
+  rank        Int
+
+  @@unique([characterId, nodeId])
+}
+
+model Item {
+  id            String          @id @default(cuid())
+  key           String          @unique
+  slot          String
+  rarity        String
+  baseJson      Json
+  affixPoolJson Json
+  inventory     InventoryItem[]
+}
+
+model InventoryItem {
+  id          String    @id @default(cuid())
+  character   Character @relation(fields: [characterId], references: [id])
+  characterId String
+  item        Item      @relation(fields: [itemId], references: [id])
+  itemId      String
+  rollsJson   Json
+}
+
+model DungeonRun {
+  id           String    @id @default(cuid())
+  character    Character @relation(fields: [characterId], references: [id])
+  characterId  String
+  seed         String
+  tier         Int
+  startedAt    DateTime  @default(now())
+  completedAt  DateTime?
+  outcome      String
+  boss         Boss?     @relation(fields: [bossId], references: [id])
+  bossId       String?
+  metricsJson  Json
+}
+
+model Boss {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  name      String
+  unlockKey String
+  runs      DungeonRun[]
+}
+
+model Unlock {
+  id          String    @id @default(cuid())
+  character   Character @relation(fields: [characterId], references: [id])
+  characterId String
+  key         String
+  valueJson   Json
+
+  @@unique([characterId, key])
+}
+
+model Achievement {
+  id           String @id @default(cuid())
+  key          String @unique
+  criteriaJson Json
+}
+
+model Leaderboard {
+  id          String    @id @default(cuid())
+  character   Character @relation(fields: [characterId], references: [id])
+  characterId String    @unique
+  bestTier    Int
+  bestTimeMs  Int
+  updatedAt   DateTime  @default(now())
+}

@@ -1,35 +1,84 @@
-# Rogue Tier
+# Rogue Tier v2
 
-This repository contains the monorepo for **Rogue Tier**, a top-down action shooter with an authoritative backend, deterministic ECS core, and extensive meta systems. The project is organised into a Turborepo with shared TypeScript tooling across the client, server, and shared packages.
+Rogue Tier v2 is a web-based top-down action shooter prototype built around a full-stack TypeScript monorepo. The project ships a
+React + PixiJS client, Fastify API with Prisma/PostgreSQL, and a shared gameplay package that exposes the ECS, content data, and
+math helpers used across both runtime targets.
 
-## Project layout
+## Repository structure
 
-- `apps/client` – React + PixiJS front-end powered by Vite.
-- `apps/server` – Fastify API server with Prisma ORM and PostgreSQL.
-- `packages/shared` – Common types, math utilities, ECS framework, and gameplay content definitions.
+```
+.
+├── apps
+│   ├── client      # Vite + React front-end with PixiJS renderer, Zustand state, React Query data layer
+│   └── server      # Fastify API with JWT cookie auth, Prisma ORM, content seed scripts, Jest tests
+├── packages
+│   └── shared      # Strongly-typed shared contracts, ECS core, math helpers, and data-driven content definitions
+├── docker-compose.yml # Launches Postgres + API + client bundles in development containers
+└── README.md
+```
 
-## Getting started
+## Quick start (beginner friendly)
 
-1. Install [pnpm](https://pnpm.io/).
-2. Install dependencies: `pnpm install`.
-3. Start database and services: `docker-compose up -d`.
-4. Apply database migrations and seed content: `pnpm --filter @rogue/server db:migrate && pnpm --filter @rogue/server db:seed`.
-5. Start development servers:
-   - API: `pnpm --filter @rogue/server dev`
-   - Client: `pnpm --filter @rogue/client dev`
+These steps assume Docker Desktop (or another container engine) and Node.js 18+ are already installed. Every command is intended
+to be copy/pasted.
 
-## Testing
+1. **Install pnpm**
+   ```bash
+   npm install -g pnpm
+   ```
+2. **Install workspace dependencies**
+   ```bash
+   pnpm install
+   ```
+3. **Generate the Prisma client & seed content**
+   ```bash
+   pnpm --filter @rogue/server db:migrate
+   pnpm --filter @rogue/server db:seed
+   ```
+4. **Launch local services**
+   - Start Postgres + API + client in Docker:
+     ```bash
+     docker-compose up --build
+     ```
+   - Or run the apps individually with hot reload:
+     ```bash
+     pnpm --filter @rogue/server dev
+     pnpm --filter @rogue/client dev
+     ```
+5. **Open the game** – visit http://localhost:5173 to play the top-down shooter demo.
 
-- Client unit tests: `pnpm --filter @rogue/client test`
-- Server tests: `pnpm --filter @rogue/server test`
-- Shared package tests: `pnpm --filter @rogue/shared test`
+### Useful scripts
 
-Playwright end-to-end scenarios live under `apps/client/tests/e2e` and can be executed with `pnpm --filter @rogue/client test:e2e` after booting the API and database.
+| Command | Description |
+| --- | --- |
+| `pnpm --filter @rogue/client test` | Run Vitest unit tests for the client (store + systems). |
+| `pnpm --filter @rogue/client test:e2e` | Execute Playwright smoke scenario (requires dev servers running). |
+| `pnpm --filter @rogue/server test` | Run Jest tests for Fastify routes (prisma is mocked in tests). |
+| `pnpm --filter @rogue/shared test` | Run Vitest suite for ECS + math utilities. |
+| `pnpm lint` | Invoke ESLint across all packages. |
 
-## Deployment
+## Gameplay feature highlights
 
-Dockerfiles for the client and server are provided alongside a `docker-compose.yml` that orchestrates the stack locally. CI is configured through GitHub Actions (`.github/workflows/ci.yml`) to lint, test, and build all packages.
+- **Advanced movement** – WASD, pointer aiming, stamina management, and projectile collision courtesy of the shared ECS package.
+- **Combat loop** – deterministic fixed-step simulation with enemy pursuit, projectile impacts, and stamina drain/regen.
+- **Skill tree** – 24-node branching graph exported from `packages/shared`, grouped by Offense/Control/Survivability/Utility with
+  gate nodes requiring boss unlock sigils.
+- **Boss + dungeon data** – shared content definitions keep unlock keys and tier data consistent between client and server.
+- **Authoritative backend** – Fastify server handles auth, characters, skill allocation validation, run lifecycle, and unlocks.
 
-## License
+## Deployment notes
 
-CC0 placeholder assets are used for development and can be replaced with production art. Code is licensed under the MIT license.
+- `apps/client/Dockerfile` builds the static PixiJS bundle into an NGINX image.
+- `apps/server/Dockerfile` packages the Fastify API with Prisma migrations ready to run against Postgres.
+- `docker-compose.yml` wires together Postgres, API, and client for local integration.
+- Set the `DATABASE_URL`, `JWT_SECRET`, and `COOKIE_SECRET` environment variables in production. The client expects
+  `VITE_API_URL` to point at the API base URL.
+
+## Troubleshooting
+
+- If `pnpm install` fails with registry authentication errors, configure npm access (`npm login`) or provide an alternate
+  registry mirror before retrying.
+- Regenerate Prisma client after schema changes: `pnpm --filter @rogue/server prisma generate`.
+- Delete the `.turbo` directory if turbo cache becomes out of sync.
+
+Enjoy experimenting with the Rogue Tier sandbox and extend content via the JSON-driven definitions in `packages/shared/content`.
