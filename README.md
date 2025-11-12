@@ -1,84 +1,70 @@
 # Rogue Tier v2
 
-Rogue Tier v2 is a web-based top-down action shooter prototype built around a full-stack TypeScript monorepo. The project ships a
-React + PixiJS client, Fastify API with Prisma/PostgreSQL, and a shared gameplay package that exposes the ECS, content data, and
-math helpers used across both runtime targets.
+Rogue Tier v2 is a top-down action prototype that runs across three TypeScript packages:
 
-## Repository structure
+- **`apps/client`** – Vite + React renderer powered by PixiJS.
+- **`apps/server`** – Fastify API with Prisma/PostgreSQL for persistence.
+- **`packages/shared`** – Gameplay engine, math helpers, and strongly-typed content consumed by both runtime targets.
 
+The repository is organised as a Turborepo workspace so every package shares a single `node_modules` folder.
+
+## Prerequisites
+
+1. **Node.js 18 or newer**. Corepack ships with Node and lets you activate pnpm.
+2. **pnpm 8**. Run `corepack prepare pnpm@8.15.4 --activate` after installing Node. If your network blocks registry downloads,
+   install pnpm from <https://pnpm.io/installation> using an offline mirror.
+3. **Docker** (optional) for the all-in-one `docker-compose` workflow.
+
+## Quick start
+
+```bash
+# install dependencies
+pnpm install
+
+# create/update the Prisma client and seed game content
+pnpm --filter @rogue/server db:migrate
+pnpm --filter @rogue/server db:seed
+
+# run the API and client with hot reload in two terminals
+pnpm --filter @rogue/server dev
+pnpm --filter @rogue/client dev
 ```
-.
-├── apps
-│   ├── client      # Vite + React front-end with PixiJS renderer, Zustand state, React Query data layer
-│   └── server      # Fastify API with JWT cookie auth, Prisma ORM, content seed scripts, Jest tests
-├── packages
-│   └── shared      # Strongly-typed shared contracts, ECS core, math helpers, and data-driven content definitions
-├── docker-compose.yml # Launches Postgres + API + client bundles in development containers
-└── README.md
-```
 
-## Quick start (beginner friendly)
+Open <http://localhost:5173> to play the demo. The client expects the API at <http://localhost:3000> by default. Use
+`docker-compose up --build` if you prefer Docker to manage Postgres, the API, and the client bundle automatically.
 
-These steps assume Docker Desktop (or another container engine) and Node.js 18+ are already installed. Every command is intended
-to be copy/pasted.
+## Everyday commands
 
-1. **Install pnpm**
-   ```bash
-   npm install -g pnpm
-   ```
-2. **Install workspace dependencies**
-   ```bash
-   pnpm install
-   ```
-3. **Generate the Prisma client & seed content**
-   ```bash
-   pnpm --filter @rogue/server db:migrate
-   pnpm --filter @rogue/server db:seed
-   ```
-4. **Launch local services**
-   - Start Postgres + API + client in Docker:
-     ```bash
-     docker-compose up --build
-     ```
-   - Or run the apps individually with hot reload:
-     ```bash
-     pnpm --filter @rogue/server dev
-     pnpm --filter @rogue/client dev
-     ```
-5. **Open the game** – visit http://localhost:5173 to play the top-down shooter demo.
-
-### Useful scripts
-
-| Command | Description |
+| Command | Purpose |
 | --- | --- |
-| `pnpm --filter @rogue/client test` | Run Vitest unit tests for the client (store + systems). |
-| `pnpm --filter @rogue/client test:e2e` | Execute Playwright smoke scenario (requires dev servers running). |
-| `pnpm --filter @rogue/server test` | Run Jest tests for Fastify routes (prisma is mocked in tests). |
-| `pnpm --filter @rogue/shared test` | Run Vitest suite for ECS + math utilities. |
-| `pnpm lint` | Invoke ESLint across all packages. |
+| `pnpm dev` | Run every package that exposes a `dev` script through Turborepo. |
+| `pnpm lint` | Lint all source files. |
+| `pnpm test` | Execute all package-level test suites. |
+| `pnpm --filter @rogue/client test:e2e` | Playwright smoke test (requires the dev servers). |
 
-## Gameplay feature highlights
+### Working without pnpm
 
-- **Advanced movement** – WASD, pointer aiming, stamina management, and projectile collision courtesy of the shared ECS package.
-- **Combat loop** – deterministic fixed-step simulation with enemy pursuit, projectile impacts, and stamina drain/regen.
-- **Skill tree** – 24-node branching graph exported from `packages/shared`, grouped by Offense/Control/Survivability/Utility with
-  gate nodes requiring boss unlock sigils.
-- **Boss + dungeon data** – shared content definitions keep unlock keys and tier data consistent between client and server.
-- **Authoritative backend** – Fastify server handles auth, characters, skill allocation validation, run lifecycle, and unlocks.
+If you only need to exercise the shared gameplay package (for example in constrained CI environments), you can run its tests
+with npm:
 
-## Deployment notes
+```bash
+cd packages/shared
+npx vitest run
+```
 
-- `apps/client/Dockerfile` builds the static PixiJS bundle into an NGINX image.
-- `apps/server/Dockerfile` packages the Fastify API with Prisma migrations ready to run against Postgres.
-- `docker-compose.yml` wires together Postgres, API, and client for local integration.
-- Set the `DATABASE_URL`, `JWT_SECRET`, and `COOKIE_SECRET` environment variables in production. The client expects
-  `VITE_API_URL` to point at the API base URL.
+This repository already contains the dependencies required by `packages/shared`, so the command above runs offline.
 
-## Troubleshooting
+## Deployment checklist
 
-- If `pnpm install` fails with registry authentication errors, configure npm access (`npm login`) or provide an alternate
-  registry mirror before retrying.
-- Regenerate Prisma client after schema changes: `pnpm --filter @rogue/server prisma generate`.
-- Delete the `.turbo` directory if turbo cache becomes out of sync.
+- Build images from `apps/client/Dockerfile` and `apps/server/Dockerfile` or trigger the Turborepo build pipeline with
+  `pnpm build`.
+- Set production secrets for the API: `DATABASE_URL`, `JWT_SECRET`, and `COOKIE_SECRET`.
+- Configure the client with `VITE_API_URL` so it knows where to find the server.
 
-Enjoy experimenting with the Rogue Tier sandbox and extend content via the JSON-driven definitions in `packages/shared/content`.
+## Need help?
+
+- Prisma schema changes require `pnpm --filter @rogue/server prisma generate`.
+- Stale Turborepo cache? Delete the `.turbo` directory.
+- Package manager download blocked by a proxy? Install pnpm manually and re-run `pnpm install`.
+
+Happy hacking! Explore the ECS, content definitions, and math helpers in `packages/shared/src` to tweak mechanics quickly.
