@@ -20,6 +20,14 @@ export const createServer = () => {
 
   server.get("/health", async () => ({ status: "ok" }));
 
+  server.log.info(
+    {
+      databaseProvider: process.env.DATABASE_PROVIDER,
+      databaseUrl: process.env.DATABASE_URL,
+    },
+    "database configuration loaded",
+  );
+
   registerAuthRoutes(server);
   registerCharacterRoutes(server);
   registerSkillRoutes(server);

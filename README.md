@@ -21,17 +21,27 @@ The repository is organised as a Turborepo workspace so every package shares a s
 # install dependencies
 pnpm install
 
-# create/update the Prisma client and seed game content
-pnpm --filter @rogue/server db:migrate
-pnpm --filter @rogue/server db:seed
+# create/update the SQLite database and seed game content
+pnpm --filter @rogue/server db:setup
+# optional: customise credentials by copying apps/server/.env.example to apps/server/.env
 
 # run the API and client with hot reload in two terminals
 pnpm --filter @rogue/server dev
 pnpm --filter @rogue/client dev
 ```
 
-Open <http://localhost:5173> to play the demo. The client expects the API at <http://localhost:3000> by default. Use
-`docker-compose up --build` if you prefer Docker to manage Postgres, the API, and the client bundle automatically.
+Open <http://localhost:5173> to play the demo. The client expects the API at <http://localhost:4000> by default. The
+development workflow now uses a local SQLite database stored in `apps/server/prisma/dev.db`, so no external services are
+required. If you prefer Docker (and PostgreSQL) run `docker-compose up --build`; the compose file now sets
+`DATABASE_PROVIDER=postgresql` for you.
+
+### GitHub Codespaces
+
+Codespaces works out of the box—launch a new Codespace for the repository and run the quick start commands above. The
+forwarded ports for the Vite dev server (5173) and Fastify API (4000) are automatically detected by VS Code.
+
+Need PostgreSQL instead of SQLite? Set `DATABASE_PROVIDER=postgresql` and `DATABASE_URL` to your connection string before
+running any of the database scripts. The Docker workflow already configures these values.
 
 ## Everyday commands
 
@@ -41,6 +51,7 @@ Open <http://localhost:5173> to play the demo. The client expects the API at <ht
 | `pnpm lint` | Lint all source files. |
 | `pnpm test` | Execute all package-level test suites. |
 | `pnpm --filter @rogue/client test:e2e` | Playwright smoke test (requires the dev servers). |
+| `pnpm --filter @rogue/server db:setup` | Create the SQLite database and seed boss/skill data. |
 
 ### Working without pnpm
 
