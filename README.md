@@ -11,8 +11,9 @@ The repository is organised as a Turborepo workspace so every package shares a s
 ## Prerequisites
 
 1. **Node.js 18 or newer**. Corepack ships with Node and lets you activate pnpm.
-2. **pnpm 8**. Run `corepack prepare pnpm@8.15.4 --activate` after installing Node. If your network blocks registry downloads,
-   install pnpm from <https://pnpm.io/installation> using an offline mirror.
+2. **pnpm 8**. Run `corepack prepare pnpm@8.15.4 --activate` after installing Node. If Corepack cannot create the symlink (for
+   example in GitHub Codespaces or other locked-down shells), install pnpm globally instead with `npm install -g pnpm@8.15.4`.
+   Offline or proxied environments can fall back to the manual options at <https://pnpm.io/installation>.
 3. **Docker** (optional) for the all-in-one `docker-compose` workflow.
 
 ## Quick start
@@ -37,8 +38,9 @@ required. If you prefer Docker (and PostgreSQL) run `docker-compose up --build`;
 
 ### GitHub Codespaces
 
-Codespaces works out of the box—launch a new Codespace for the repository and run the quick start commands above. The
-forwarded ports for the Vite dev server (5173) and Fastify API (4000) are automatically detected by VS Code.
+Codespaces works out of the box—launch a new Codespace for the repository and run the quick start commands above. If pnpm is
+missing, run `npm install -g pnpm@8.15.4` once and then `pnpm install` from the repository root. The forwarded ports for the
+Vite dev server (5173) and Fastify API (4000) are automatically detected by VS Code.
 
 Need PostgreSQL instead of SQLite? Set `DATABASE_PROVIDER=postgresql` and `DATABASE_URL` to your connection string before
 running any of the database scripts. The Docker workflow already configures these values.

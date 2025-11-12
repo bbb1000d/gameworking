@@ -1,7 +1,7 @@
 import Fastify from "fastify";
 import fastifyCookie from "@fastify/cookie";
 import fastifyCors from "@fastify/cors";
-import fastifySensible from "fastify-sensible";
+import fastifySensible from "@fastify/sensible";
 import { registerAuthRoutes } from "./routes/auth";
 import { registerCharacterRoutes } from "./routes/characters";
 import { registerSkillRoutes } from "./routes/skill";
