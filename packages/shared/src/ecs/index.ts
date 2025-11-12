@@ -182,16 +182,23 @@ const resolveOverlap = (
       transformB.position.y - colliderB.height / 2,
     );
 
+  const epsilon = 0.0001;
+  const separateAxis = (
+    axis: "x" | "y",
+    overlap: number,
+  ) => {
+    const separation = Math.max(0, overlap - epsilon);
+    const direction =
+      transformA.position[axis] < transformB.position[axis] ? -1 : 1;
+    const offset = (direction * separation) / 2;
+    transformA.position[axis] += offset;
+    transformB.position[axis] -= offset;
+  };
+
   if (overlapX < overlapY) {
-    const direction =
-      transformA.position.x < transformB.position.x ? -overlapX : overlapX;
-    transformA.position.x += direction / 2;
-    transformB.position.x -= direction / 2;
+    separateAxis("x", overlapX);
   } else {
-    const direction =
-      transformA.position.y < transformB.position.y ? -overlapY : overlapY;
-    transformA.position.y += direction / 2;
-    transformB.position.y -= direction / 2;
+    separateAxis("y", overlapY);
   }
 };
 

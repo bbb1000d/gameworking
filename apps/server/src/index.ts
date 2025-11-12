@@ -1,7 +1,7 @@
 import Fastify from "fastify";
 import fastifyCookie from "@fastify/cookie";
 import fastifyCors from "@fastify/cors";
-import fastifySensible from "fastify-sensible";
+import fastifySensible from "@fastify/sensible";
 import { registerAuthRoutes } from "./routes/auth";
 import { registerCharacterRoutes } from "./routes/characters";
 import { registerSkillRoutes } from "./routes/skill";
@@ -19,6 +19,14 @@ export const createServer = () => {
   server.register(fastifySensible);
 
   server.get("/health", async () => ({ status: "ok" }));
+
+  server.log.info(
+    {
+      databaseProvider: process.env.DATABASE_PROVIDER,
+      databaseUrl: process.env.DATABASE_URL,
+    },
+    "database configuration loaded",
+  );
 
   registerAuthRoutes(server);
   registerCharacterRoutes(server);

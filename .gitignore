@@ -2,10 +2,15 @@ node_modules
 pnpm-lock.yaml
 .env
 .env.*
+!.env.example
+!*/.env.example
 dist
 build
 .vite
 coverage
 .playwright
+.turbo
+.pnpm-store
+apps/server/prisma/dev.db
 .DS_Store
 .idea

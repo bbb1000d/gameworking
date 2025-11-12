@@ -19,6 +19,7 @@ services:
       - db
     environment:
       DATABASE_URL: postgresql://rogues:rogues@db:5432/rogue_tier
+      DATABASE_PROVIDER: postgresql
       JWT_SECRET: devsecret
       COOKIE_SECRET: devsecret
       PORT: 4000
