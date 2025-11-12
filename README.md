@@ -38,9 +38,20 @@ required. If you prefer Docker (and PostgreSQL) run `docker-compose up --build`;
 
 ### GitHub Codespaces
 
-Codespaces works out of the box—launch a new Codespace for the repository and run the quick start commands above. If pnpm is
-missing, run `npm install -g pnpm@8.15.4` once and then `pnpm install` from the repository root. The forwarded ports for the
-Vite dev server (5173) and Fastify API (4000) are automatically detected by VS Code.
+Codespaces now provisions itself:
+
+1. Click **Use this template → Open in a codespace** (or launch from the Code dropdown).
+2. Wait for the post-create task to finish—VS Code shows progress in the bottom-right corner. The task installs pnpm if needed,
+   runs `pnpm install`, and seeds the SQLite database with `pnpm --filter @rogue/server db:setup`.
+3. Start the dev servers when you are ready:
+
+   ```bash
+   pnpm --filter @rogue/server dev
+   pnpm --filter @rogue/client dev
+   ```
+
+If you prefer to run the setup manually, the scripts above are exactly what the automation executes. The forwarded ports for
+the Vite dev server (5173) and Fastify API (4000) are automatically detected by VS Code.
 
 Need PostgreSQL instead of SQLite? Set `DATABASE_PROVIDER=postgresql` and `DATABASE_URL` to your connection string before
 running any of the database scripts. The Docker workflow already configures these values.
