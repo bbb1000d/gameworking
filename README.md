@@ -1,35 +1,94 @@
-# Rogue Tier
+# Rogue Tier v2
 
-This repository contains the monorepo for **Rogue Tier**, a top-down action shooter with an authoritative backend, deterministic ECS core, and extensive meta systems. The project is organised into a Turborepo with shared TypeScript tooling across the client, server, and shared packages.
+Rogue Tier v2 is a top-down action prototype that runs across three TypeScript packages:
 
-## Project layout
+- **`apps/client`** – Vite + React renderer powered by PixiJS.
+- **`apps/server`** – Fastify API with Prisma/PostgreSQL for persistence.
+- **`packages/shared`** – Gameplay engine, math helpers, and strongly-typed content consumed by both runtime targets.
 
-- `apps/client` – React + PixiJS front-end powered by Vite.
-- `apps/server` – Fastify API server with Prisma ORM and PostgreSQL.
-- `packages/shared` – Common types, math utilities, ECS framework, and gameplay content definitions.
+The repository is organised as a Turborepo workspace so every package shares a single `node_modules` folder.
 
-## Getting started
+## Prerequisites
 
-1. Install [pnpm](https://pnpm.io/).
-2. Install dependencies: `pnpm install`.
-3. Start database and services: `docker-compose up -d`.
-4. Apply database migrations and seed content: `pnpm --filter @rogue/server db:migrate && pnpm --filter @rogue/server db:seed`.
-5. Start development servers:
-   - API: `pnpm --filter @rogue/server dev`
-   - Client: `pnpm --filter @rogue/client dev`
+1. **Node.js 18 or newer**. Corepack ships with Node and lets you activate pnpm.
+2. **pnpm 8**. Run `corepack prepare pnpm@8.15.4 --activate` after installing Node. If Corepack cannot create the symlink (for
+   example in GitHub Codespaces or other locked-down shells), install pnpm globally instead with `npm install -g pnpm@8.15.4`.
+   Offline or proxied environments can fall back to the manual options at <https://pnpm.io/installation>.
+3. **Docker** (optional) for the all-in-one `docker-compose` workflow.
 
-## Testing
+## Quick start
 
-- Client unit tests: `pnpm --filter @rogue/client test`
-- Server tests: `pnpm --filter @rogue/server test`
-- Shared package tests: `pnpm --filter @rogue/shared test`
+```bash
+# install dependencies
+pnpm install
 
-Playwright end-to-end scenarios live under `apps/client/tests/e2e` and can be executed with `pnpm --filter @rogue/client test:e2e` after booting the API and database.
+# create/update the SQLite database and seed game content
+pnpm --filter @rogue/server db:setup
+# optional: customise credentials by copying apps/server/.env.example to apps/server/.env
 
-## Deployment
+# run the API and client with hot reload in two terminals
+pnpm --filter @rogue/server dev
+pnpm --filter @rogue/client dev
+```
 
-Dockerfiles for the client and server are provided alongside a `docker-compose.yml` that orchestrates the stack locally. CI is configured through GitHub Actions (`.github/workflows/ci.yml`) to lint, test, and build all packages.
+Open <http://localhost:5173> to play the demo. The client expects the API at <http://localhost:4000> by default. The
+development workflow now uses a local SQLite database stored in `apps/server/prisma/dev.db`, so no external services are
+required. If you prefer Docker (and PostgreSQL) run `docker-compose up --build`; the compose file now sets
+`DATABASE_PROVIDER=postgresql` for you.
 
-## License
+### GitHub Codespaces
 
-CC0 placeholder assets are used for development and can be replaced with production art. Code is licensed under the MIT license.
+Codespaces now provisions itself:
+
+1. Click **Use this template → Open in a codespace** (or launch from the Code dropdown).
+2. Wait for the post-create task to finish—VS Code shows progress in the bottom-right corner. The task installs pnpm if needed,
+   runs `pnpm install`, and seeds the SQLite database with `pnpm --filter @rogue/server db:setup`.
+3. Start the dev servers when you are ready:
+
+   ```bash
+   pnpm --filter @rogue/server dev
+   pnpm --filter @rogue/client dev
+   ```
+
+If you prefer to run the setup manually, the scripts above are exactly what the automation executes. The forwarded ports for
+the Vite dev server (5173) and Fastify API (4000) are automatically detected by VS Code.
+
+Need PostgreSQL instead of SQLite? Set `DATABASE_PROVIDER=postgresql` and `DATABASE_URL` to your connection string before
+running any of the database scripts. The Docker workflow already configures these values.
+
+## Everyday commands
+
+| Command | Purpose |
+| --- | --- |
+| `pnpm dev` | Run every package that exposes a `dev` script through Turborepo. |
+| `pnpm lint` | Lint all source files. |
+| `pnpm test` | Execute all package-level test suites. |
+| `pnpm --filter @rogue/client test:e2e` | Playwright smoke test (requires the dev servers). |
+| `pnpm --filter @rogue/server db:setup` | Create the SQLite database and seed boss/skill data. |
+
+### Working without pnpm
+
+If you only need to exercise the shared gameplay package (for example in constrained CI environments), you can run its tests
+with npm:
+
+```bash
+cd packages/shared
+npx vitest run
+```
+
+This repository already contains the dependencies required by `packages/shared`, so the command above runs offline.
+
+## Deployment checklist
+
+- Build images from `apps/client/Dockerfile` and `apps/server/Dockerfile` or trigger the Turborepo build pipeline with
+  `pnpm build`.
+- Set production secrets for the API: `DATABASE_URL`, `JWT_SECRET`, and `COOKIE_SECRET`.
+- Configure the client with `VITE_API_URL` so it knows where to find the server.
+
+## Need help?
+
+- Prisma schema changes require `pnpm --filter @rogue/server prisma generate`.
+- Stale Turborepo cache? Delete the `.turbo` directory.
+- Package manager download blocked by a proxy? Install pnpm manually and re-run `pnpm install`.
+
+Happy hacking! Explore the ECS, content definitions, and math helpers in `packages/shared/src` to tweak mechanics quickly.
