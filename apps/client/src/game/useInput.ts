@@ -35,13 +35,16 @@ export const useInput = () => {
     };
 
     const handlePointerMove = (event: PointerEvent) => {
-      const target = event.target as HTMLElement | null;
-      if (!target) return;
-      const rect = target.getBoundingClientRect();
+      const canvas = document.querySelector<HTMLCanvasElement>("#game-stage canvas");
+      if (!canvas) return;
+      const rect = canvas.getBoundingClientRect();
+      const screenX = event.clientX - rect.left;
+      const screenY = event.clientY - rect.top;
+      const camera = useGameStore.getState().camera;
       setInput({
         pointer: {
-          x: event.clientX - rect.left,
-          y: event.clientY - rect.top,
+          x: screenX + camera.x,
+          y: screenY + camera.y,
         },
       });
     };
